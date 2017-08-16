@@ -9,7 +9,6 @@ import vrep                  #V-rep library
 import sys
 import time                #used to keep track of time
 import numpy as np         #array library
-from tqdm import tqdm
 import cv2
 import imutils
 
@@ -17,7 +16,7 @@ import imutils
 class CarControl():
     def __init__(self, clientID, printFlag = False):
         self.clientID = clientID;
-        #retrieve motor  handles
+        # retrieve motor  handles
         errorCode, self.steer_handle = vrep.simxGetObjectHandle(self.clientID, 'steer_joint', vrep.simx_opmode_oneshot_wait);
         errorCode, self.motor_handle = vrep.simxGetObjectHandle(self.clientID, 'motor_joint', vrep.simx_opmode_oneshot_wait);
         errorCode, self.fl_brake_handle = vrep.simxGetObjectHandle(self.clientID, 'fl_brake_joint', vrep.simx_opmode_oneshot_wait);
@@ -35,6 +34,15 @@ class CarControl():
         self.max_steer = 30; # Degrees
 
         self.printFlag = printFlag;
+        
+        # Self test the camera
+        print('Setting up the camera system...');
+        self.lastFrame = None;
+        err = 0;
+        while(err != 1):
+            err, self.lastFrame = self.get_image();
+        print('Camera setup successful.')
+        
 
     def set_throttle(self, target_speed):
         if(target_speed > self.max_throttle):
@@ -75,8 +83,8 @@ class CarControl():
         if err == vrep.simx_return_ok:
             img = np.array(image,dtype=np.uint8);
             img.resize([resolution[1],resolution[0],3]);
-            dst = imutils.rotate_bound(img, 90);
-            return 1, dst;
+            self.lastFrame = imutils.rotate_bound(img, 90);
+            return 1, self.lastFrame;
         elif err == vrep.simx_return_novalue_flag:
             return 0, None;
         else:
@@ -97,7 +105,7 @@ car = CarControl(clientID, printFlag = False);
 car.set_steering(20); # Degrees
 car.set_throttle(1);  # Kmph
 
-for i in tqdm(range(90)):
+for i in range(90):
     # Start time for image process
     start = time.time();
 
@@ -105,9 +113,11 @@ for i in tqdm(range(90)):
 
     # End time for image process
     end = time.time();
-    
+
     dt = end - start;
-    print('Time:', dt)
+    print('Frame took:', dt*1000.0, 'ms');
+    # if(dt != 0):
+    #     print('FPS:', 1.0/dt);
     if err == 1:
         cv2.imshow('image',img);
         cv2.waitKey(1); # in milliseconds
