@@ -12,7 +12,7 @@ This repository contains all the files needed to get started with a self driving
 2. OpenCV 2 with python bindings
 3. Pillow
 4. Numpy
-5. Tqdm (to make it look fancy)
+5. imutils (just do 'pip install imutils' in the terminal or command prompt)
 
 ### Credits
 If you find this work useful in any way, be sure to star it and maybe shoot me a message at karanb@terpmail.umd.edu on any possible improvements. I sincerely thank Qi Wang for the VREP model of the Manta (on which the whole system is built). 
