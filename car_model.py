@@ -9,13 +9,9 @@ import vrep                  #V-rep library
 import sys
 import time                #used to keep track of time
 import numpy as np         #array library
-import math
-import matplotlib as mpl   #used for image plotting
-from msvcrt import getch   #used to get keystrokes
 from tqdm import tqdm
 import cv2
-from PIL import Image
-import array
+import imutils
 
 # Model for the car with two variables throttle and steering
 class CarControl():
@@ -28,7 +24,8 @@ class CarControl():
         errorCode, self.fr_brake_handle = vrep.simxGetObjectHandle(self.clientID, 'fr_brake_joint', vrep.simx_opmode_oneshot_wait);
         errorCode, self.bl_brake_handle = vrep.simxGetObjectHandle(self.clientID, 'bl_brake_joint', vrep.simx_opmode_oneshot_wait);
         errorCode, self.br_brake_handle = vrep.simxGetObjectHandle(self.clientID, 'br_brake_joint', vrep.simx_opmode_oneshot_wait);
-        errorCode, self.camera_f_handle = vrep.simxGetObjectHandle(self.clientID, 'Vision_sensor', vrep.simx_opmode_oneshot_wait);
+        errorCode, self.camera_f_handle = vrep.simxGetObjectHandle(self.clientID, 'cam_f', vrep.simx_opmode_oneshot_wait);
+        
         vrep.simxGetVisionSensorImage(self.clientID, self.camera_f_handle, 0, vrep.simx_opmode_streaming)
         print('Received Handles...');
 
@@ -76,18 +73,14 @@ class CarControl():
     def get_image(self):
         err, resolution, image = vrep.simxGetVisionSensorImage(self.clientID, self.camera_f_handle, 0, vrep.simx_opmode_buffer);
         if err == vrep.simx_return_ok:
-            print(image);
-            image_byte_array = array.array('b', image);
-            # print(image_byte_array);
-            image_buffer = Image.frombuffer("RGB", (resolution[0], resolution[1]), image_byte_array, "raw", "BGR", 0, 1);
-            img_out = np.asarray(image_buffer);
-            img_out = cv2.flip(img_out, 0);
-            return 1, img_out;
-
+            img = np.array(image,dtype=np.uint8);
+            img.resize([resolution[1],resolution[0],3]);
+            dst = imutils.rotate_bound(img, 90);
+            return 1, dst;
         elif err == vrep.simx_return_novalue_flag:
-            return 0,None;
+            return 0, None;
         else:
-            return err,None;
+            return err, None;
 
 vrep.simxFinish(-1) # just in case, close all opened connections
 clientID = vrep.simxStart('127.0.0.1',19999,True,True,5000,5) # Get the client ID
@@ -101,10 +94,23 @@ else:
 
 # Initialize car control object
 car = CarControl(clientID, printFlag = False);
+car.set_steering(20); # Degrees
+car.set_throttle(1);  # Kmph
 
-for i in tqdm(range(5)):
-    time.sleep(0.1);
-    car.set_steering(20); # Degrees
-    car.set_throttle(100); #Kmph
+for i in tqdm(range(90)):
+    # Start time for image process
+    start = time.time();
+
     err, img = car.get_image();
+
+    # End time for image process
+    end = time.time();
+    
+    dt = end - start;
+    print('Time:', dt)
+    if err == 1:
+        cv2.imshow('image',img);
+        cv2.waitKey(1); # in milliseconds
+    else:
+        time.sleep(1) # in seconds
     
