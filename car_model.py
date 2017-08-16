@@ -105,7 +105,7 @@ car = CarControl(clientID, printFlag = False);
 car.set_steering(20); # Degrees
 car.set_throttle(1);  # Kmph
 
-for i in range(90):
+for i in range(150):
     # Start time for image process
     start = time.time();
 
@@ -116,11 +116,6 @@ for i in range(90):
 
     dt = end - start;
     print('Frame took:', dt*1000.0, 'ms');
-    # if(dt != 0):
-    #     print('FPS:', 1.0/dt);
-    if err == 1:
-        cv2.imshow('image',img);
-        cv2.waitKey(1); # in milliseconds
-    else:
-        time.sleep(1) # in seconds
+    cv2.imshow('image',img);
+    cv2.waitKey(1); # in milliseconds
     
