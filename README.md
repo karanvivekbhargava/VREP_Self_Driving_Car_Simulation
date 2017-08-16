@@ -1,4 +1,4 @@
-# VREP-Self Driving Car Simulation with python API
+# VREP-Self Driving Car Simulation with Python API
 This repository contains all the files needed to get started with a self driving car simulation in VREP.
 
 ### Instructions for windows users
