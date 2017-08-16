@@ -8,9 +8,13 @@ This repository contains all the files needed to get started with a self driving
 
 ### Dependencies
 Python 3.5.2 or above
+
 OpenCV 2 with python bindings
+
 Pillow
+
 Numpy
+
 Tqdm (to make it look fancy)
 
 ### Credits
